@@ -343,7 +343,24 @@ async function descargarCSV(tipo) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
-  mostrarToast(`Archivo ${tipo} descargado ✅`);
+  mostrarToast(`Archivo ${tipo} descargado. Enviando a DGII...`);
+
+  // Enviar a DGII via API
+  try {
+    let result;
+    if (tipo === '606') {
+      result = await enviar606DGII(registros, negocio);
+    } else {
+      result = await enviar607DGII(registros, negocio);
+    }
+    if (result.success) {
+      mostrarToast(`Formato ${tipo} enviado a DGII. ${result.cantidadRegistros || 0} registros.`);
+    } else {
+      mostrarToast(`Archivo descargado. API pendiente: ${result.message || 'configurar credenciales'}`);
+    }
+  } catch (e) {
+    mostrarToast(`Archivo descargado. API: sin conexion`);
+  }
 }
 
 // ══ CONFIG ═════════════════════════════════════════════
@@ -619,3 +636,30 @@ async function compartirPDFWhatsApp() {
 
   mostrarToast('PDF descargado. Abriendo WhatsApp...');
 }
+
+// === API DGII ===
+async function probarAPI() {
+  mostrarToast('Probando conexion con DGII...');
+  const result = await probarConexionDGII();
+  if (result.success) {
+    mostrarToast('Conexion DGII exitosa!');
+  } else {
+    mostrarToast('API DGII: ' + (result.message || 'pendiente de configurar'));
+  }
+}
+
+async function enviarFacturaPrueba() {
+  const negocio = await getConfig('negocio');
+  if (!negocio) { mostrarToast('Configura tu negocio primero'); return; }
+  mostrarToast('Enviando factura de prueba...');
+  const result = await enviarFacturaECF({
+    items: [{ nombre: 'VENTA DE PRUEBA', cantidad: 1, precio: 100 }],
+    tipoPago: 1
+  });
+  if (result.success) {
+    mostrarToast('Factura enviada a DGII!');
+  } else {
+    mostrarToast('Error: ' + (result.message || 'pendiente'));
+  }
+}
+
