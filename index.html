@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a3a6b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DGII Reporter">
+  <title>DGII Reporter</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- PANTALLA: Carga -->
+<div id="pantalla-carga" class="pantalla activa">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:20px">
+    <div class="logo-grande">🏛️</div>
+    <div style="font-size:24px;font-weight:800">DGII Reporter</div>
+    <div style="color:#94a3b8;font-size:14px">Reportes fiscales automáticos</div>
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- PANTALLA: Activación por Token -->
+<div id="pantalla-token" class="pantalla">
+  <div class="token-container">
+    <div class="token-icon">🔑</div>
+    <h1>Activar App</h1>
+    <p>Ingresa el token de activación que te envió tu proveedor para comenzar a usar DGII Reporter.</p>
+    <input type="text" id="input-token" class="input-token" placeholder="XXXX-XXXX" maxlength="12"
+      oninput="this.value=this.value.toUpperCase()">
+    <div id="token-error" class="error-msg"></div>
+    <button id="btn-activar" class="btn-primary" onclick="activarToken()" style="width:100%">
+      Activar App ✅
+    </button>
+    <p style="font-size:12px;color:#64748b;margin-top:8px">
+      ¿No tienes token? Contacta a tu proveedor del servicio.
+    </p>
+  </div>
+</div>
+
+<!-- PANTALLA: Setup Inicial -->
+<div id="pantalla-setup" class="pantalla">
+  <div class="setup-header">
+    <h1>⚙️ Configura tu negocio</h1>
+    <p>Solo la primera vez. Tus datos quedan guardados en el dispositivo.</p>
+  </div>
+
+  <div class="form-group">
+    <label>Nombre del negocio *</label>
+    <input type="text" id="setup-nombre" class="form-input" placeholder="Farmacia La Esperanza">
+  </div>
+
+  <div class="form-group">
+    <label>RNC (sin guiones) *</label>
+    <input type="text" id="setup-rnc" class="form-input" placeholder="101234567" inputmode="numeric" maxlength="11">
+  </div>
+
+  <div class="form-group">
+    <label>Tipo de negocio</label>
+    <select id="setup-tipo" class="form-input">
+      <option value="farmacia">Farmacia</option>
+      <option value="supermercado">Supermercado / Minimarket</option>
+      <option value="ferreteria">Ferretería</option>
+      <option value="restaurante">Restaurante / Cafetería</option>
+      <option value="clinica">Clínica / Consultorio</option>
+      <option value="distribuidora">Distribuidora</option>
+      <option value="tienda">Tienda de Ropa / Calzado</option>
+      <option value="taller">Taller Mecánico</option>
+      <option value="otro">Otro</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>¿Cobras ITBIS a tus clientes?</label>
+    <select id="setup-itbis" class="form-input">
+      <option value="si">Sí — incluido en el precio</option>
+      <option value="separado">Sí — lo cobro por separado</option>
+      <option value="exento">No — estoy exento</option>
+    </select>
+  </div>
+
+  <div id="setup-error" class="error-msg"></div>
+  <div class="spacer"></div>
+  <button class="btn-primary" onclick="guardarSetup()">Guardar y Comenzar 🚀</button>
+</div>
+
+<!-- PANTALLA: Principal -->
+<div id="pantalla-principal" class="pantalla">
+  <div class="header">
+    <div class="logo">🏛️ DGII Reporter</div>
+    <div class="badge-activo">● ACTIVO</div>
+  </div>
+
+  <div class="hero">
+    <h2 id="nombre-negocio">Mi Negocio</h2>
+    <div class="fecha" id="fecha-hoy"></div>
+    <div class="estado-hoy estado-pendiente" id="estado-hoy">⏳ Cargando...</div>
+  </div>
+
+  <button class="btn-registro" onclick="abrirRegistro()">
+    📝 Registrar Ventas del Día
+  </button>
+
+  <div class="section-title" id="mes-nombre">Resumen del mes</div>
+
+  <div class="stats-grid">
+    <div class="stat-card verde">
+      <div class="label">Total Ventas</div>
+      <div class="valor" id="total-ventas">RD$ 0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total Compras</div>
+      <div class="valor" id="total-compras">RD$ 0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">ITBIS Cobrado</div>
+      <div class="valor" id="itbis-cobrado">RD$ 0.00</div>
+    </div>
+    <div class="stat-card amarillo">
+      <div class="label">ITBIS a Pagar</div>
+      <div class="valor" id="itbis-neto">RD$ 0.00</div>
+    </div>
+  </div>
+
+  <div class="semaforo verde" id="semaforo">🟢 Sin datos aún</div>
+
+  <div class="section-title">Días registrados este mes</div>
+  <div class="stat-card" style="margin-bottom:16px">
+    <div class="valor" id="dias-reg" style="font-size:28px;text-align:center">0 días</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-sec" onclick="verReporte()">📊 Ver Reporte</button>
+    <button class="btn-sec" onclick="mostrarPantalla('pantalla-historial')">📋 Historial</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-sec" onclick="descargarCSV('606')">⬇️ 606</button>
+    <button class="btn-sec" onclick="descargarCSV('607')">⬇️ 607</button>
+  </div>
+</div>
+
+<!-- PANTALLA: Registro Diario -->
+<div id="pantalla-registro" class="pantalla">
+  <div class="reg-header">
+    <h2>📝 Registrar día</h2>
+    <div class="reg-fecha" id="reg-fecha"></div>
+  </div>
+
+  <div class="form-group">
+    <label>💰 ¿Cuánto vendiste hoy en total?</label>
+    <div class="monto-input-container">
+      <span class="monto-prefix">RD$</span>
+      <input type="number" id="input-ventas" class="monto-input"
+        placeholder="0" inputmode="decimal" min="0"
+        oninput="previewVentas()">
+    </div>
+    <div id="preview-ventas"></div>
+    <button class="sin-ventas-link" onclick="sinVentasHoy()">No tuve ventas hoy</button>
+  </div>
+
+  <div class="separador"></div>
+
+  <div class="form-group">
+    <label>🛒 ¿Cuánto compraste/gastaste hoy? <span style="color:#64748b">(opcional)</span></label>
+    <div class="monto-input-container">
+      <span class="monto-prefix">RD$</span>
+      <input type="number" id="input-compras" class="monto-input"
+        placeholder="0" inputmode="decimal" min="0"
+        oninput="previewCompras()">
+    </div>
+    <div id="preview-compras"></div>
+  </div>
+
+  <div class="spacer"></div>
+  <div id="reg-error" class="error-msg"></div>
+  <button id="btn-guardar-dia" class="btn-primary" onclick="guardarDia()">
+    ✅ Guardar Este Día
+  </button>
+  <button class="btn-outline" onclick="volver()">← Cancelar</button>
+</div>
+
+<!-- PANTALLA: Reporte Mensual -->
+<div id="pantalla-reporte" class="pantalla">
+  <div class="header">
+    <button onclick="volver()" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer">← Volver</button>
+    <div style="font-weight:700">Reporte Mensual</div>
+    <div></div>
+  </div>
+
+  <div class="reporte-card">
+    <div style="font-weight:800;font-size:16px;margin-bottom:4px" id="rep-negocio"></div>
+    <div style="color:#94a3b8;font-size:13px">RNC: <span id="rep-rnc"></span></div>
+    <div style="color:#94a3b8;font-size:13px;text-transform:capitalize">Período: <span id="rep-mes"></span></div>
+  </div>
+
+  <div class="reporte-card">
+    <div class="section-title" style="margin-bottom:12px">Resumen Fiscal</div>
+    <div class="reporte-row">
+      <span class="r-label">Total Ventas (con ITBIS)</span>
+      <span class="r-valor" id="rep-ventas"></span>
+    </div>
+    <div class="reporte-row">
+      <span class="r-label">Total Compras (con ITBIS)</span>
+      <span class="r-valor" id="rep-compras"></span>
+    </div>
+    <div class="reporte-row">
+      <span class="r-label">ITBIS Cobrado</span>
+      <span class="r-valor" id="rep-itbis-cobrado"></span>
+    </div>
+    <div class="reporte-row">
+      <span class="r-label">ITBIS Pagado (crédito)</span>
+      <span class="r-valor" id="rep-itbis-pagado"></span>
+    </div>
+    <div class="reporte-row destacado">
+      <span class="r-label" style="font-weight:700">ITBIS a Pagar a DGII</span>
+      <span class="r-valor" id="rep-itbis-pagar"></span>
+    </div>
+    <div class="reporte-row">
+      <span class="r-label">Días registrados</span>
+      <span class="r-valor" id="rep-dias"></span>
+    </div>
+  </div>
+
+  <div class="section-title">Descargar para DGII</div>
+  <div class="btn-row" style="margin-bottom:8px">
+    <button class="btn-descarga btn-606" onclick="descargarCSV('606')">⬇️ Formato 606<br><small>Compras</small></button>
+    <button class="btn-descarga btn-607" onclick="descargarCSV('607')">⬇️ Formato 607<br><small>Ventas</small></button>
+  </div>
+  <p style="font-size:12px;color:#64748b;text-align:center;margin-top:8px">
+    Archivos listos para subir al portal OFV de la DGII
+  </p>
+</div>
+
+<!-- PANTALLA: Bloqueado -->
+<div id="pantalla-bloqueado" class="pantalla">
+  <div class="bloq-icon">🔒</div>
+  <h2>Cuenta Suspendida</h2>
+  <p>Tu acceso a DGII Reporter ha sido suspendido. Por favor contacta a tu proveedor para reactivar el servicio.</p>
+  <div class="contacto-box">
+    <div style="font-size:13px;color:#94a3b8;margin-bottom:8px">Contacta a tu proveedor:</div>
+    <div style="font-weight:700">📱 WhatsApp / Llamada</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="/js/db.js"></script>
+<script src="/js/calc.js"></script>
+<script src="/js/sync.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
