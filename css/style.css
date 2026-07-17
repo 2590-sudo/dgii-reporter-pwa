@@ -368,3 +368,104 @@ select.form-input { appearance: none; cursor: pointer; }
   font-weight: 600;
   margin-bottom: 10px;
 }
+
+/* ── COMPROBANTES ── */
+.comp-botones {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.btn-comp {
+  flex: 1;
+  padding: 14px 10px;
+  background: var(--card);
+  border: 2px dashed var(--borde);
+  border-radius: 12px;
+  color: var(--texto);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-comp:active {
+  border-color: var(--azul-claro);
+  background: var(--card2);
+}
+
+.comprobantes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.comprobante-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.comp-img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid var(--borde);
+}
+
+.comp-pdf {
+  width: 52px;
+  height: 52px;
+  background: rgba(124,58,237,0.2);
+  border: 1px solid rgba(124,58,237,0.4);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.comp-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.comp-nombre {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comp-fecha {
+  font-size: 11px;
+  color: var(--texto2);
+  margin-top: 2px;
+}
+
+.comp-eliminar {
+  background: rgba(220,38,38,0.15);
+  border: 1px solid rgba(220,38,38,0.3);
+  color: #f87171;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

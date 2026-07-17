@@ -175,6 +175,26 @@
     <div id="preview-compras"></div>
   </div>
 
+
+  <div class="separador"></div>
+
+  <div class="form-group">
+    <label>📎 Comprobantes del día <span style="color:#64748b">(opcional)</span></label>
+    <div class="comp-botones">
+      <button class="btn-comp" onclick="abrirCamara()">
+        📷 Tomar Foto
+      </button>
+      <button class="btn-comp" onclick="abrirSelectorComprobante()">
+        📁 Desde Archivos
+      </button>
+    </div>
+    <input type="file" id="input-camara" accept="image/*" capture="environment" multiple
+      style="display:none" onchange="procesarComprobante(this.files)">
+    <input type="file" id="input-comprobante" accept="image/*,application/pdf" multiple
+      style="display:none" onchange="procesarComprobante(this.files)">
+    <div id="comprobantes-preview" class="comprobantes-grid"></div>
+  </div>
+
   <div class="spacer"></div>
   <div id="reg-error" class="error-msg"></div>
   <button id="btn-guardar-dia" class="btn-primary" onclick="guardarDia()">
@@ -244,6 +264,13 @@
     <div style="font-size:13px;color:#94a3b8;margin-bottom:8px">Contacta a tu proveedor:</div>
     <div style="font-weight:700">📱 WhatsApp / Llamada</div>
   </div>
+</div>
+
+
+<!-- MODAL: Ver Comprobante -->
+<div id="modal-comprobante" onclick="cerrarModal()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;justify-content:center;align-items:center;flex-direction:column;gap:16px">
+  <img id="modal-img" style="max-width:95%;max-height:80vh;border-radius:12px;object-fit:contain">
+  <button onclick="cerrarModal()" style="background:#dc2626;color:white;border:none;padding:10px 24px;border-radius:24px;font-size:16px;font-weight:700;cursor:pointer">✕ Cerrar</button>
 </div>
 
 <!-- TOAST -->

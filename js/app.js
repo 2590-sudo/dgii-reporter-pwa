@@ -113,6 +113,7 @@ function abrirRegistro() {
   document.getElementById('preview-ventas').innerHTML = '';
   document.getElementById('preview-compras').innerHTML = '';
   mostrarPantalla('pantalla-registro');
+  cargarComprobantesHoy();
 }
 
 function previewVentas() {
@@ -287,4 +288,114 @@ function parsearMonto(str) {
 function volver() {
   const setup = getConfig('setup_completo');
   mostrarPantalla('pantalla-principal');
+}
+
+// ─── COMPROBANTES / FOTOS ────────────────────────────────
+let comprobantesTemp = [];
+
+function abrirSelectorComprobante() {
+  document.getElementById('input-comprobante').click();
+}
+
+function abrirCamara() {
+  document.getElementById('input-camara').click();
+}
+
+async function procesarComprobante(files) {
+  if (!files || files.length === 0) return;
+
+  const container = document.getElementById('comprobantes-preview');
+  mostrarToast('Guardando comprobante...');
+
+  for (const file of files) {
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      mostrarError('reg-error', 'Solo se aceptan imágenes o PDF.');
+      continue;
+    }
+
+    const id = Date.now() + Math.random().toString(36).substr(2,5);
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      const dataUrl = e.target.result;
+
+      // Guardar en IndexedDB
+      await guardarComprobante({
+        id,
+        fecha: new Date().toISOString().split('T')[0],
+        mes: getMesActual(),
+        nombre: file.name,
+        tipo: file.type,
+        data: dataUrl,
+        timestamp: Date.now()
+      });
+
+      comprobantesTemp.push({ id, nombre: file.name, dataUrl, tipo: file.type });
+      renderizarComprobante(id, file.name, dataUrl, file.type, container);
+      mostrarToast('✅ Comprobante guardado');
+    };
+
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderizarComprobante(id, nombre, dataUrl, tipo, container) {
+  const div = document.createElement('div');
+  div.className = 'comprobante-item';
+  div.id = `comp-${id}`;
+
+  const esPDF = tipo === 'application/pdf';
+  const preview = esPDF
+    ? `<div class="comp-pdf">📄 PDF</div>`
+    : `<img src="${dataUrl}" class="comp-img" onclick="verComprobante('${id}')">`;
+
+  div.innerHTML = `
+    ${preview}
+    <div class="comp-info">
+      <div class="comp-nombre">${nombre.length > 20 ? nombre.substr(0,20)+'...' : nombre}</div>
+      <div class="comp-fecha">Hoy</div>
+    </div>
+    <button class="comp-eliminar" onclick="eliminarComprobante('${id}')">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+async function eliminarComprobante(id) {
+  const db = await openDB();
+  const tx = db.transaction('comprobantes', 'readwrite');
+  tx.objectStore('comprobantes').delete(id);
+  document.getElementById(`comp-${id}`)?.remove();
+  comprobantesTemp = comprobantesTemp.filter(c => c.id !== id);
+  mostrarToast('Comprobante eliminado');
+}
+
+function verComprobante(id) {
+  const comp = comprobantesTemp.find(c => c.id === id);
+  if (!comp) return;
+  const modal = document.getElementById('modal-comprobante');
+  document.getElementById('modal-img').src = comp.dataUrl;
+  modal.style.display = 'flex';
+}
+
+function cerrarModal() {
+  document.getElementById('modal-comprobante').style.display = 'none';
+}
+
+async function cargarComprobantesHoy() {
+  const hoy = new Date().toISOString().split('T')[0];
+  try {
+    const db = await openDB();
+    const tx = db.transaction('comprobantes', 'readonly');
+    const idx = tx.objectStore('comprobantes').index('fecha');
+    const req = idx.getAll(hoy);
+    req.onsuccess = () => {
+      const container = document.getElementById('comprobantes-preview');
+      container.innerHTML = '';
+      comprobantesTemp = [];
+      req.result.forEach(c => {
+        comprobantesTemp.push({ id: c.id, nombre: c.nombre, dataUrl: c.data, tipo: c.tipo });
+        renderizarComprobante(c.id, c.nombre, c.data, c.tipo, container);
+      });
+    };
+  } catch(e) {}
 }

@@ -1,6 +1,6 @@
 // Base de datos local IndexedDB — funciona 100% offline
 const DB_NAME = 'dgii_reporter';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -14,6 +14,11 @@ function openDB() {
       }
       if (!db.objectStoreNames.contains('config')) {
         db.createObjectStore('config', { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains('comprobantes')) {
+        const cs = db.createObjectStore('comprobantes', { keyPath: 'id' });
+        cs.createIndex('fecha', 'fecha', { unique: false });
+        cs.createIndex('mes', 'mes', { unique: false });
       }
       if (!db.objectStoreNames.contains('sync_queue')) {
         db.createObjectStore('sync_queue', { keyPath: 'id', autoIncrement: true });
@@ -75,5 +80,15 @@ async function getRegistroHoy() {
     const req = idx.getAll(hoy);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
+  });
+}
+
+async function guardarComprobante(data) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('comprobantes', 'readwrite');
+    tx.objectStore('comprobantes').put(data);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
   });
 }

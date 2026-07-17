@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dgii-reporter-v1';
+const CACHE_NAME = 'dgii-reporter-v2';
 const ASSETS = [
   '/', '/index.html', '/css/style.css',
   '/js/app.js', '/js/db.js', '/js/calc.js',
