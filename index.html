@@ -3,63 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1a3a6b">
+  <meta name="theme-color" content="#0d0d1a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="DGII Reporter">
+  <meta name="description" content="Reportes 606/607 automáticos para comerciantes de República Dominicana">
   <title>DGII Reporter</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-<!-- PANTALLA: Carga -->
+<!-- ══ SPLASH ══════════════════════════════════════════ -->
 <div id="pantalla-carga" class="pantalla activa">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:20px">
-    <div class="logo-grande">🏛️</div>
-    <div style="font-size:24px;font-weight:800">DGII Reporter</div>
-    <div style="color:#94a3b8;font-size:14px">Reportes fiscales automáticos</div>
-    <div class="spinner"></div>
-  </div>
+  <div class="splash-logo">🏛️</div>
+  <div class="splash-title">DGII Reporter</div>
+  <div class="splash-sub">Reportes fiscales automáticos · RD</div>
+  <div class="spinner"></div>
 </div>
 
-<!-- PANTALLA: Activación por Token -->
+<!-- ══ ACTIVACIÓN TOKEN ══════════════════════════════════ -->
 <div id="pantalla-token" class="pantalla">
-  <div class="token-container">
-    <div class="token-icon">🔑</div>
-    <h1>Activar App</h1>
-    <p>Ingresa el token de activación que te envió tu proveedor para comenzar a usar DGII Reporter.</p>
-    <input type="text" id="input-token" class="input-token" placeholder="XXXX-XXXX" maxlength="12"
-      oninput="this.value=this.value.toUpperCase()">
-    <div id="token-error" class="error-msg"></div>
-    <button id="btn-activar" class="btn-primary" onclick="activarToken()" style="width:100%">
-      Activar App ✅
-    </button>
-    <p style="font-size:12px;color:#64748b;margin-top:8px">
-      ¿No tienes token? Contacta a tu proveedor del servicio.
-    </p>
-  </div>
+  <div class="token-icon-wrap">🔑</div>
+  <div class="token-title">Activar App</div>
+  <div class="token-desc">Ingresa el token que te envió tu proveedor para desbloquear el acceso completo.</div>
+  <input type="text" id="input-token" class="input-token" placeholder="XXXX-XXXX"
+    maxlength="12" oninput="this.value=this.value.toUpperCase()" autocomplete="off" spellcheck="false">
+  <div id="token-error" class="error-msg"></div>
+  <button id="btn-activar" class="btn-primary" onclick="activarToken()">Activar ✅</button>
+  <div style="font-size:12px;color:var(--texto3);margin-top:10px">¿Sin token? Contacta a tu proveedor.</div>
 </div>
 
-<!-- PANTALLA: Setup Inicial -->
+<!-- ══ SETUP ═════════════════════════════════════════════ -->
 <div id="pantalla-setup" class="pantalla">
-  <div class="setup-header">
-    <h1>⚙️ Configura tu negocio</h1>
-    <p>Solo la primera vez. Tus datos quedan guardados en el dispositivo.</p>
-  </div>
+  <div class="page-title">⚙️ Configura tu negocio</div>
+  <div class="page-sub">Solo la primera vez. Queda guardado en tu dispositivo.</div>
 
   <div class="form-group">
-    <label>Nombre del negocio *</label>
+    <label class="form-label">Nombre del negocio *</label>
     <input type="text" id="setup-nombre" class="form-input" placeholder="Farmacia La Esperanza">
   </div>
-
   <div class="form-group">
-    <label>RNC (sin guiones) *</label>
+    <label class="form-label">RNC *</label>
     <input type="text" id="setup-rnc" class="form-input" placeholder="101234567" inputmode="numeric" maxlength="11">
   </div>
-
   <div class="form-group">
-    <label>Tipo de negocio</label>
+    <label class="form-label">Tipo de negocio</label>
     <select id="setup-tipo" class="form-input">
       <option value="farmacia">Farmacia</option>
       <option value="supermercado">Supermercado / Minimarket</option>
@@ -72,12 +61,11 @@
       <option value="otro">Otro</option>
     </select>
   </div>
-
   <div class="form-group">
-    <label>¿Cobras ITBIS a tus clientes?</label>
+    <label class="form-label">¿Cobras ITBIS?</label>
     <select id="setup-itbis" class="form-input">
       <option value="si">Sí — incluido en el precio</option>
-      <option value="separado">Sí — lo cobro por separado</option>
+      <option value="separado">Sí — lo cobro aparte</option>
       <option value="exento">No — estoy exento</option>
     </select>
   </div>
@@ -87,76 +75,74 @@
   <button class="btn-primary" onclick="guardarSetup()">Guardar y Comenzar 🚀</button>
 </div>
 
-<!-- PANTALLA: Principal -->
+<!-- ══ PRINCIPAL ═════════════════════════════════════════ -->
 <div id="pantalla-principal" class="pantalla">
-  <div class="header">
-    <div class="logo">🏛️ DGII Reporter</div>
-    <div class="badge-activo">● ACTIVO</div>
+
+  <div class="hero-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="hero-negocio" id="nombre-negocio">Mi Negocio</div>
+        <div class="hero-fecha" id="fecha-hoy"></div>
+      </div>
+      <div style="font-size:32px">🏛️</div>
+    </div>
+    <div class="badge-activo">ACTIVO</div>
   </div>
 
-  <div class="hero">
-    <h2 id="nombre-negocio">Mi Negocio</h2>
-    <div class="fecha" id="fecha-hoy"></div>
-    <div class="estado-hoy estado-pendiente" id="estado-hoy">⏳ Cargando...</div>
-  </div>
+  <div class="estado-hoy estado-pendiente" id="estado-hoy">⏳ Cargando...</div>
 
   <button class="btn-registro" onclick="abrirRegistro()">
-    📝 Registrar Ventas del Día
+    <span style="font-size:20px">📝</span> Registrar Ventas del Día
   </button>
 
-  <div class="section-title" id="mes-nombre">Resumen del mes</div>
-
+  <div class="section-label" id="mes-nombre">Resumen del mes</div>
   <div class="stats-grid">
-    <div class="stat-card verde">
-      <div class="label">Total Ventas</div>
-      <div class="valor" id="total-ventas">RD$ 0.00</div>
+    <div class="stat-card purp">
+      <div class="stat-label">Total Ventas</div>
+      <div class="stat-valor" id="total-ventas">RD$ 0.00</div>
     </div>
-    <div class="stat-card">
-      <div class="label">Total Compras</div>
-      <div class="valor" id="total-compras">RD$ 0.00</div>
+    <div class="stat-card norm">
+      <div class="stat-label">Total Compras</div>
+      <div class="stat-valor" id="total-compras">RD$ 0.00</div>
     </div>
-    <div class="stat-card">
-      <div class="label">ITBIS Cobrado</div>
-      <div class="valor" id="itbis-cobrado">RD$ 0.00</div>
+    <div class="stat-card norm">
+      <div class="stat-label">ITBIS Cobrado</div>
+      <div class="stat-valor" id="itbis-cobrado">RD$ 0.00</div>
     </div>
-    <div class="stat-card amarillo">
-      <div class="label">ITBIS a Pagar</div>
-      <div class="valor" id="itbis-neto">RD$ 0.00</div>
+    <div class="stat-card teal">
+      <div class="stat-label">ITBIS a Pagar</div>
+      <div class="stat-valor" id="itbis-neto">RD$ 0.00</div>
     </div>
   </div>
 
-  <div class="semaforo verde" id="semaforo">🟢 Sin datos aún</div>
-
-  <div class="section-title">Días registrados este mes</div>
-  <div class="stat-card" style="margin-bottom:16px">
-    <div class="valor" id="dias-reg" style="font-size:28px;text-align:center">0 días</div>
-  </div>
+  <div class="semaforo verde" id="semaforo">🟢 Sin registros aún</div>
 
   <div class="btn-row">
-    <button class="btn-sec" onclick="verReporte()">📊 Ver Reporte</button>
-    <button class="btn-sec" onclick="mostrarPantalla('pantalla-historial')">📋 Historial</button>
-  </div>
-
-  <div class="btn-row">
-    <button class="btn-sec" onclick="descargarCSV('606')">⬇️ 606</button>
-    <button class="btn-sec" onclick="descargarCSV('607')">⬇️ 607</button>
+    <button class="btn-sec purp" onclick="verReporte()">
+      <span class="btn-icon">📊</span> Reporte
+    </button>
+    <button class="btn-sec teal" onclick="descargarCSV('606')">
+      <span class="btn-icon">⬇️</span> Formato 606
+    </button>
+    <button class="btn-sec teal" onclick="descargarCSV('607')">
+      <span class="btn-icon">⬇️</span> Formato 607
+    </button>
   </div>
 </div>
 
-<!-- PANTALLA: Registro Diario -->
+<!-- ══ REGISTRO DIARIO ════════════════════════════════════ -->
 <div id="pantalla-registro" class="pantalla">
   <div class="reg-header">
-    <h2>📝 Registrar día</h2>
-    <div class="reg-fecha" id="reg-fecha"></div>
+    <div class="reg-title">📝 Registrar día</div>
+    <div class="reg-fecha-txt" id="reg-fecha"></div>
   </div>
 
   <div class="form-group">
-    <label>💰 ¿Cuánto vendiste hoy en total?</label>
-    <div class="monto-input-container">
+    <label class="form-label">💰 Total vendido hoy</label>
+    <div class="monto-wrap">
       <span class="monto-prefix">RD$</span>
       <input type="number" id="input-ventas" class="monto-input"
-        placeholder="0" inputmode="decimal" min="0"
-        oninput="previewVentas()">
+        placeholder="0" inputmode="decimal" min="0" oninput="previewVentas()">
     </div>
     <div id="preview-ventas"></div>
     <button class="sin-ventas-link" onclick="sinVentasHoy()">No tuve ventas hoy</button>
@@ -165,27 +151,27 @@
   <div class="separador"></div>
 
   <div class="form-group">
-    <label>🛒 ¿Cuánto compraste/gastaste hoy? <span style="color:#64748b">(opcional)</span></label>
-    <div class="monto-input-container">
+    <label class="form-label">🛒 Total compras / gastos <span style="color:var(--texto3)">(opcional)</span></label>
+    <div class="monto-wrap">
       <span class="monto-prefix">RD$</span>
       <input type="number" id="input-compras" class="monto-input"
-        placeholder="0" inputmode="decimal" min="0"
-        oninput="previewCompras()">
+        placeholder="0" inputmode="decimal" min="0" oninput="previewCompras()">
     </div>
     <div id="preview-compras"></div>
   </div>
 
-
   <div class="separador"></div>
 
   <div class="form-group">
-    <label>📎 Comprobantes del día <span style="color:#64748b">(opcional)</span></label>
+    <label class="form-label">📎 Comprobantes del día <span style="color:var(--texto3)">(opcional)</span></label>
     <div class="comp-botones">
       <button class="btn-comp" onclick="abrirCamara()">
-        📷 Tomar Foto
+        <span class="comp-icon">📷</span>
+        Tomar Foto
       </button>
       <button class="btn-comp" onclick="abrirSelectorComprobante()">
-        📁 Desde Archivos
+        <span class="comp-icon">📁</span>
+        Desde Archivos
       </button>
     </div>
     <input type="file" id="input-camara" accept="image/*" capture="environment" multiple
@@ -197,34 +183,31 @@
 
   <div class="spacer"></div>
   <div id="reg-error" class="error-msg"></div>
-  <button id="btn-guardar-dia" class="btn-primary" onclick="guardarDia()">
-    ✅ Guardar Este Día
-  </button>
+  <button id="btn-guardar-dia" class="btn-teal" onclick="guardarDia()">✅ Guardar Este Día</button>
   <button class="btn-outline" onclick="volver()">← Cancelar</button>
 </div>
 
-<!-- PANTALLA: Reporte Mensual -->
+<!-- ══ REPORTE MENSUAL ════════════════════════════════════ -->
 <div id="pantalla-reporte" class="pantalla">
-  <div class="header">
-    <button onclick="volver()" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer">← Volver</button>
-    <div style="font-weight:700">Reporte Mensual</div>
-    <div></div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+    <button onclick="volver()" style="background:var(--card);border:1px solid var(--borde);color:var(--texto2);width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">←</button>
+    <div class="page-title" style="margin:0">Reporte Mensual</div>
   </div>
 
   <div class="reporte-card">
-    <div style="font-weight:800;font-size:16px;margin-bottom:4px" id="rep-negocio"></div>
-    <div style="color:#94a3b8;font-size:13px">RNC: <span id="rep-rnc"></span></div>
-    <div style="color:#94a3b8;font-size:13px;text-transform:capitalize">Período: <span id="rep-mes"></span></div>
+    <div style="font-weight:800;font-size:17px;margin-bottom:4px" id="rep-negocio"></div>
+    <div style="color:var(--texto2);font-size:13px">RNC: <span id="rep-rnc"></span></div>
+    <div style="color:var(--texto2);font-size:13px;text-transform:capitalize">Período: <span id="rep-mes"></span></div>
   </div>
 
   <div class="reporte-card">
-    <div class="section-title" style="margin-bottom:12px">Resumen Fiscal</div>
+    <div class="section-label" style="margin-bottom:4px">Resumen Fiscal</div>
     <div class="reporte-row">
       <span class="r-label">Total Ventas (con ITBIS)</span>
-      <span class="r-valor" id="rep-ventas"></span>
+      <span class="r-valor" style="color:#a78bfa" id="rep-ventas"></span>
     </div>
     <div class="reporte-row">
-      <span class="r-label">Total Compras (con ITBIS)</span>
+      <span class="r-label">Total Compras</span>
       <span class="r-valor" id="rep-compras"></span>
     </div>
     <div class="reporte-row">
@@ -236,44 +219,187 @@
       <span class="r-valor" id="rep-itbis-pagado"></span>
     </div>
     <div class="reporte-row destacado">
-      <span class="r-label" style="font-weight:700">ITBIS a Pagar a DGII</span>
+      <span class="r-label">ITBIS a Pagar a DGII</span>
       <span class="r-valor" id="rep-itbis-pagar"></span>
     </div>
+  </div>
+
+  <div class="section-label">Descargar para el portal OFV</div>
+  <div class="btn-row">
+    <button class="btn-descarga btn-606" onclick="descargarCSV('606')">
+      <span style="font-size:22px">📥</span>
+      Formato 606<br><small style="font-weight:400;opacity:0.8">Compras</small>
+    </button>
+    <button class="btn-descarga btn-607" onclick="descargarCSV('607')">
+      <span style="font-size:22px">📤</span>
+      Formato 607<br><small style="font-weight:400;opacity:0.8">Ventas</small>
+    </button>
+  </div>
+  <div style="font-size:12px;color:var(--texto3);text-align:center;margin-top:10px">
+    Listos para subir al portal OFV · DGII
+  </div>
+</div>
+
+<!-- ══ CONFIGURACIÓN ══════════════════════════════════════ -->
+<div id="pantalla-config" class="pantalla">
+  <div class="page-title">⚙️ Configuración</div>
+  <div class="page-sub">Ajustes de tu cuenta</div>
+
+  <div class="reporte-card" style="margin-bottom:14px">
+    <div class="section-label">Negocio</div>
     <div class="reporte-row">
-      <span class="r-label">Días registrados</span>
-      <span class="r-valor" id="rep-dias"></span>
+      <span class="r-label">Nombre</span>
+      <span class="r-valor" id="cfg-nombre" style="font-size:14px"></span>
+    </div>
+    <div class="reporte-row">
+      <span class="r-label">RNC</span>
+      <span class="r-valor" id="cfg-rnc" style="font-size:14px"></span>
+    </div>
+    <div class="reporte-row">
+      <span class="r-label">Tipo</span>
+      <span class="r-valor" id="cfg-tipo" style="font-size:14px;text-transform:capitalize"></span>
     </div>
   </div>
 
-  <div class="section-title">Descargar para DGII</div>
-  <div class="btn-row" style="margin-bottom:8px">
-    <button class="btn-descarga btn-606" onclick="descargarCSV('606')">⬇️ Formato 606<br><small>Compras</small></button>
-    <button class="btn-descarga btn-607" onclick="descargarCSV('607')">⬇️ Formato 607<br><small>Ventas</small></button>
+  <div class="reporte-card" style="margin-bottom:14px">
+    <div class="section-label">Sistema</div>
+    <div class="reporte-row">
+      <span class="r-label">Última sincronización</span>
+      <span class="r-valor" id="cfg-sync" style="font-size:13px"></span>
+    </div>
+    <div class="reporte-row">
+      <span class="r-label">Estado licencia</span>
+      <span class="r-valor" id="cfg-licencia" style="color:var(--teal);font-size:13px"></span>
+    </div>
   </div>
-  <p style="font-size:12px;color:#64748b;text-align:center;margin-top:8px">
-    Archivos listos para subir al portal OFV de la DGII
-  </p>
+
+  <button class="btn-primary mt12" onclick="mostrarInstallModal()">📲 Instalar como App</button>
+  <button class="btn-outline" onclick="forzarSync()">🔄 Sincronizar ahora</button>
 </div>
 
-<!-- PANTALLA: Bloqueado -->
+<!-- ══ BLOQUEADO ══════════════════════════════════════════ -->
 <div id="pantalla-bloqueado" class="pantalla">
-  <div class="bloq-icon">🔒</div>
-  <h2>Cuenta Suspendida</h2>
-  <p>Tu acceso a DGII Reporter ha sido suspendido. Por favor contacta a tu proveedor para reactivar el servicio.</p>
-  <div class="contacto-box">
-    <div style="font-size:13px;color:#94a3b8;margin-bottom:8px">Contacta a tu proveedor:</div>
-    <div style="font-weight:700">📱 WhatsApp / Llamada</div>
+  <div class="bloq-wrap">🔒</div>
+  <div class="page-title" style="text-align:center">Cuenta Suspendida</div>
+  <div style="color:var(--texto2);text-align:center;line-height:1.7;font-size:14px">
+    Tu acceso fue suspendido.<br>Contacta a tu proveedor para reactivar.
+  </div>
+  <div class="reporte-card" style="width:100%;text-align:center">
+    <div style="font-size:13px;color:var(--texto2);margin-bottom:8px">Proveedor del servicio</div>
+    <div style="font-weight:800;font-size:16px">📱 Llama o escribe por WhatsApp</div>
   </div>
 </div>
 
+<!-- ══ NAV BAR ════════════════════════════════════════════ -->
+<nav class="nav-bar" id="nav-bar" style="display:none">
+  <button class="nav-item activo" id="nav-inicio" onclick="navegar('principal')">
+    <span class="nav-icon">🏠</span>
+    Inicio
+  </button>
+  <button class="nav-item" id="nav-registro" onclick="abrirRegistro()">
+    <span class="nav-icon">📝</span>
+    Registrar
+  </button>
+  <button class="nav-item" id="nav-reporte" onclick="navReporte()">
+    <span class="nav-icon">📊</span>
+    Reporte
+  </button>
+  <button class="nav-item" id="nav-config" onclick="navegar('config')">
+    <span class="nav-icon">⚙️</span>
+    Config
+  </button>
+</nav>
 
-<!-- MODAL: Ver Comprobante -->
-<div id="modal-comprobante" onclick="cerrarModal()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;justify-content:center;align-items:center;flex-direction:column;gap:16px">
-  <img id="modal-img" style="max-width:95%;max-height:80vh;border-radius:12px;object-fit:contain">
-  <button onclick="cerrarModal()" style="background:#dc2626;color:white;border:none;padding:10px 24px;border-radius:24px;font-size:16px;font-weight:700;cursor:pointer">✕ Cerrar</button>
+<!-- ══ INSTALL BANNER ════════════════════════════════════ -->
+<div class="install-banner" id="install-banner" style="display:none">
+  <div class="ib-icon">📲</div>
+  <div class="ib-text">
+    <div class="ib-title">Instalar DGII Reporter</div>
+    <div class="ib-sub">Úsala sin internet, desde tu pantalla</div>
+  </div>
+  <button class="ib-btn" onclick="mostrarInstallModal()">Instalar</button>
+  <button class="ib-close" onclick="ocultarBanner()">✕</button>
 </div>
 
-<!-- TOAST -->
+<!-- ══ MODAL INSTALL ═════════════════════════════════════ -->
+<div id="modal-install" style="display:none" onclick="cerrarModalInstall(event)">
+  <div class="modal-overlay">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-title">📲 Instalar DGII Reporter</div>
+      <div class="modal-sub">Elige cómo quieres instalar la app en tu dispositivo para usarla sin necesidad del navegador.</div>
+
+      <div class="install-option" onclick="instalarNativo()" id="opt-nativo" style="display:none">
+        <div class="opt-icon">⚡</div>
+        <div class="opt-text">
+          <div class="opt-title">Instalar automáticamente</div>
+          <div class="opt-desc">El navegador instala la app directamente en tu pantalla</div>
+        </div>
+        <div class="opt-arrow">›</div>
+      </div>
+
+      <div class="install-option" onclick="mostrarInstruccionesManual()">
+        <div class="opt-icon">📋</div>
+        <div class="opt-text">
+          <div class="opt-title">Agregar manualmente</div>
+          <div class="opt-desc">Instrucciones paso a paso para tu dispositivo</div>
+        </div>
+        <div class="opt-arrow">›</div>
+      </div>
+
+      <button class="btn-outline" onclick="cerrarModalInstall()" style="margin-top:16px">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL INSTRUCCIONES ═══════════════════════════════ -->
+<div id="modal-instrucciones" style="display:none">
+  <div class="modal-overlay">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-title">📋 Cómo instalar</div>
+
+      <div id="instrucciones-android" style="display:none">
+        <div style="color:var(--texto2);font-size:14px;line-height:1.8;margin-bottom:16px">
+          <strong style="color:var(--teal)">En Android (Chrome):</strong><br>
+          1. Toca los 3 puntos ⋮ arriba a la derecha<br>
+          2. Selecciona "Agregar a pantalla de inicio"<br>
+          3. Confirma tocando "Agregar"<br>
+          4. ¡Listo! Busca el ícono en tu pantalla 🎉
+        </div>
+      </div>
+
+      <div id="instrucciones-ios" style="display:none">
+        <div style="color:var(--texto2);font-size:14px;line-height:1.8;margin-bottom:16px">
+          <strong style="color:var(--teal)">En iPhone / iPad (Safari):</strong><br>
+          1. Toca el botón compartir 📤 abajo<br>
+          2. Desliza y toca "Añadir a pantalla de inicio"<br>
+          3. Confirma tocando "Añadir" arriba a la derecha<br>
+          4. ¡Listo! Busca DGII Reporter en tu pantalla 🎉
+        </div>
+      </div>
+
+      <div id="instrucciones-general" style="display:none">
+        <div style="color:var(--texto2);font-size:14px;line-height:1.8;margin-bottom:16px">
+          Busca en el menú del navegador la opción<br>
+          <strong style="color:var(--teal)">"Agregar a pantalla de inicio"</strong><br>
+          o <strong style="color:var(--teal)">"Instalar aplicación"</strong>
+        </div>
+      </div>
+
+      <button class="btn-teal" onclick="cerrarInstrucciones()">Entendido ✅</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL VER COMPROBANTE ═════════════════════════════ -->
+<div id="modal-comprobante" onclick="cerrarModal()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <img id="modal-img" style="max-width:95%;max-height:80vh;border-radius:14px;object-fit:contain">
+  <button onclick="cerrarModal()" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171;padding:10px 28px;border-radius:24px;font-size:15px;font-weight:700;cursor:pointer">✕ Cerrar</button>
+</div>
+
+<!-- ══ TOAST ═════════════════════════════════════════════ -->
 <div id="toast"></div>
 
 <script src="/js/db.js"></script>
