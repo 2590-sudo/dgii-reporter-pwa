@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DGII Reporter - Admin</title>
+<style>
+:root{--bg:#0F172A;--card:#1E293B;--primary:#0EA5E9;--primary-d:#0284C7;--text:#F1F5F9;--muted:#94A3B8;--green:#22C55E;--red:#EF4444;--border:#334155;--radius:12px;--yellow:#F59E0B}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+.admin{max-width:520px;margin:0 auto;padding:16px 12px 40px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.header h1{font-size:20px;font-weight:700}
+.header .logo{color:var(--primary)}
+.header .badge{background:rgba(34,197,94,0.2);color:var(--green);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600}
+.btn{background:var(--primary);color:#fff;border:none;padding:12px 20px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;width:100%;transition:.15s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5}
+.btn-sec{background:var(--card);border:1px solid var(--border)}
+.btn-del{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.card h3{font-size:16px;margin-bottom:12px;color:var(--primary)}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 12px;color:var(--text);font-size:15px;margin-bottom:10px;outline:none}
+input:focus{border-color:var(--primary)}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;margin-top:8px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.stat{background:var(--card);border-radius:var(--radius);padding:14px 10px;border:1px solid var(--border);text-align:center}
+.stat .val{font-size:22px;font-weight:700;color:var(--primary)}
+.stat .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+.list-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px}
+.list-item .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.list-item .name{font-weight:600;font-size:14px}
+.list-item .meta{font-size:12px;color:var(--muted)}
+.badge{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(34,197,94,.2);color:var(--green)}
+.badge-red{background:rgba(239,68,68,.2);color:var(--red)}
+.badge-yellow{background:rgba(245,158,11,.2);color:var(--yellow)}
+.token-list{margin-top:12px}
+.token-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.token-row .key{font-family:monospace;font-size:15px;font-weight:700;letter-spacing:1px}
+.token-row .info{font-size:11px;color:var(--muted);margin-top:2px}
+.token-row .actions{display:flex;gap:6px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:400;display:none}
+.toast.show{display:block;animation:fade 3s}
+@keyframes fade{0%,80%{opacity:1}100%{opacity:0}}
+.tab-row{display:flex;gap:8px;margin-bottom:16px}
+.tab{flex:1;padding:10px;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted)}
+.tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.page{display:none}
+.page.active{display:block}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .icon{font-size:48px;margin-bottom:12px}
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px}
+.login-box{max-width:360px;width:100%}
+.login-box .logo{font-size:28px;font-weight:800;color:var(--primary);text-align:center;margin-bottom:6px}
+.login-box .sub{color:var(--muted);font-size:14px;text-align:center;margin-bottom:24px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN ADMIN -->
+<div class="login-screen" id="login-screen">
+<div class="login-box">
+<div class="logo">DGII Reporter</div>
+<div class="sub">Panel de Administracion</div>
+<div class="card">
+<h3>Acceso administrador</h3>
+<label>Contrasena</label>
+<input type="password" id="admin-pass" placeholder="********" onkeydown="if(event.key==='Enter')loginAdmin()">
+<button class="btn" onclick="loginAdmin()">Entrar</button>
+</div>
+<div style="color:var(--muted);font-size:12px;text-align:center;margin-top:12px">Acceso solo para proveedores autorizados</div>
+</div>
+</div>
+
+<!-- PANEL -->
+<div class="admin" id="admin-panel" style="display:none">
+<div class="header">
+<h1><span class="logo">DGII</span> Reporter Admin</h1>
+<span class="badge">ONLINE</span>
+</div>
+
+<div class="tab-row">
+<div class="tab active" onclick="switchTab('dashboard')">Panel</div>
+<div class="tab" onclick="switchTab('tokens')">Tokens</div>
+<div class="tab" onclick="switchTab('clientes')">Clientes</div>
+</div>
+
+<!-- TAB: DASHBOARD -->
+<div id="page-dashboard" class="page active">
+<div class="stats">
+<div class="stat"><div class="val" id="d-total-tokens">0</div><div class="lbl">Tokens</div></div>
+<div class="stat"><div class="val" id="d-activos">0</div><div class="lbl">Activos</div></div>
+<div class="stat"><div class="val" id="d-clientes">0</div><div class="lbl">Clientes</div></div>
+</div>
+<div class="card">
+<h3>Resumen general</h3>
+<div id="d-resumen" style="color:var(--muted);font-size:14px;line-height:1.8">
+Cargando datos...
+</div>
+</div>
+<div class="card">
+<h3>Acciones rapidas</h3>
+<button class="btn btn-green btn-sm" onclick="switchTab('tokens');generarToken()" style="margin-bottom:8px;width:auto">+ Generar nuevo token</button>
+</div>
+</div>
+
+<!-- TAB: TOKENS -->
+<div id="page-tokens" class="page">
+<div class="card">
+<h3>Generar token de licencia</h3>
+<label>Nombre del cliente (opcional)</label>
+<input id="tok-cliente" placeholder="Farmacia La Esperanza">
+<label>Telefono (opcional)</label>
+<input id="tok-tel" placeholder="809-000-0000">
+<button class="btn btn-green" onclick="generarToken()">Generar Token</button>
+</div>
+
+<div class="card">
+<h3>Tokens generados <span id="tok-count" style="font-size:13px;color:var(--muted)"></span></h3>
+<div id="token-list" class="token-list">
+<div class="empty"><div class="icon">🔑</div>No hay tokens generados</div>
+</div>
+<button class="btn btn-sec btn-sm" onclick="copiarTodos()" style="margin-top:10px;width:auto">Copiar todos</button>
+</div>
+</div>
+
+<!-- TAB: CLIENTES -->
+<div id="page-clientes" class="page">
+<div class="card">
+<h3>Clientes registrados</h3>
+<div id="clientes-list">
+<div class="empty"><div class="icon">👥</div>No hay clientes registrados aun</div>
+</div>
+</div>
+<div class="card">
+<h3>Configuracion del panel</h3>
+<label>Contrasena del admin</label>
+<input type="password" id="cfg-pass" placeholder="Cambiar contrasena">
+<button class="btn btn-sec btn-sm" onclick="cambiarPass()" style="width:auto">Cambiar</button>
+</div>
+<button class="btn btn-del" onclick="logoutAdmin()">Cerrar sesion</button>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ SISTEMA DE LICENCIAS (igual que eFact) ══════════════
+const SALT = "DGRD$2026xK9";
+const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const ADMIN_PASS = "admin2026"; // Cambiar en produccion
+
+// LocalStorage keys
+const LS_TOKENS = 'dgii_admin_tokens';
+const LS_CLIENTES = 'dgii_admin_clientes';
+const LS_PASS = 'dgii_admin_pass';
+
+// ══ INIT ════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const pass = localStorage.getItem(LS_PASS);
+  if (!pass) localStorage.setItem(LS_PASS, ADMIN_PASS);
+  if (sessionStorage.getItem('dgii_admin_authed') === 'true') {
+    showPanel();
+  }
+});
+
+function loginAdmin() {
+  const input = document.getElementById('admin-pass').value;
+  const pass = localStorage.getItem(LS_PASS) || ADMIN_PASS;
+  if (input === pass) {
+    sessionStorage.setItem('dgii_admin_authed', 'true');
+    showPanel();
+  } else {
+    showToast('Contrasena incorrecta', true);
+  }
+}
+
+function logoutAdmin() {
+  sessionStorage.removeItem('dgii_admin_authed');
+  location.reload();
+}
+
+function showPanel() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'block';
+  cargarDashboard();
+  cargarTokens();
+  cargarClientes();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'dashboard') cargarDashboard();
+  if (tab === 'tokens') cargarTokens();
+  if (tab === 'clientes') cargarClientes();
+}
+
+// ══ KEYGEN ══════════════════════════════════════════════
+function generarKey() {
+  let body = '';
+  for (let i = 0; i < 8; i++) body += CHARS[Math.floor(Math.random() * CHARS.length)];
+  let hash = 0;
+  const str = body + SALT;
+  for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash = hash & hash; }
+  hash = Math.abs(hash) % 9999;
+  const check = String(hash).padStart(4, '0');
+  return 'DGRD-' + body.substring(0, 4) + '-' + body.substring(4, 8) + '-' + check;
+}
+
+function validarKey(key) {
+  const clean = key.replace(/-/g, '').toUpperCase().trim();
+  if (clean.length !== 16 || !clean.startsWith('DGRD')) return false;
+  const body = clean.substring(4, 12);
+  const check = clean.substring(12, 16);
+  let hash = 0;
+  const str = body + SALT;
+  for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash = hash & hash; }
+  hash = Math.abs(hash) % 9999;
+  return String(hash).padStart(4, '0') === check;
+}
+
+function generarToken() {
+  let key;
+  do { key = generarKey(); } while (!validarKey(key));
+  const cliente = document.getElementById('tok-cliente').value.trim();
+  const tel = document.getElementById('tok-tel').value.trim();
+  const tokens = getTokens();
+  tokens.push({
+    key,
+    cliente: cliente || 'Sin asignar',
+    tel: tel || '',
+    fecha: new Date().toISOString(),
+    estado: 'activo',
+    activado: false
+  });
+  saveTokens(tokens);
+  document.getElementById('tok-cliente').value = '';
+  document.getElementById('tok-tel').value = '';
+  cargarTokens();
+  cargarDashboard();
+  showToast('Token generado: ' + key);
+  // Copiar al portapapeles automaticamente
+  navigator.clipboard?.writeText(key).catch(() => {});
+}
+
+function getTokens() {
+  return JSON.parse(localStorage.getItem(LS_TOKENS) || '[]');
+}
+
+function saveTokens(tokens) {
+  localStorage.setItem(LS_TOKENS, JSON.stringify(tokens));
+}
+
+function getClientes() {
+  return JSON.parse(localStorage.getItem(LS_CLIENTES) || '[]');
+}
+
+function saveClientes(clientes) {
+  localStorage.setItem(LS_CLIENTES, JSON.stringify(clientes));
+}
+
+function cargarTokens() {
+  const tokens = getTokens();
+  const container = document.getElementById('token-list');
+  document.getElementById('tok-count').textContent = '(' + tokens.length + ')';
+  if (tokens.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="icon">🔑</div>No hay tokens generados</div>';
+    return;
+  }
+  container.innerHTML = tokens.map((t, i) => {
+    const fecha = new Date(t.fecha).toLocaleDateString('es-DO');
+    const estadoClass = t.estado === 'activo' ? 'badge-green' : 'badge-red';
+    const activadoBadge = t.activado ? '<span class="badge badge-yellow">En uso</span>' : '<span class="badge badge-green">Disponible</span>';
+    return `<div class="token-row">
+      <div>
+        <div class="key">${t.key}</div>
+        <div class="info">${t.cliente} ${t.tel ? '· ' + t.tel : ''} · ${fecha}</div>
+        <div style="margin-top:4px"><span class="badge ${estadoClass}">${t.estado}</span> ${activadoBadge}</div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-sec btn-sm" onclick="copiarToken(${i})">Copiar</button>
+        ${t.estado === 'activo'
+          ? `<button class="btn btn-del btn-sm" onclick="suspenderToken(${i})">Suspender</button>`
+          : `<button class="btn btn-green btn-sm" onclick="activarTokenAdmin(${i})">Activar</button>`}
+        <button class="btn btn-del btn-sm" onclick="borrarToken(${i})">Borrar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function copiarToken(i) {
+  const tokens = getTokens();
+  navigator.clipboard?.writeText(tokens[i].key).then(() => showToast('Token copiado'));
+}
+
+function copiarTodos() {
+  const tokens = getTokens();
+  if (!tokens.length) return;
+  const text = tokens.map(t => t.key + ' - ' + t.cliente).join('\n');
+  navigator.clipboard?.writeText(text).then(() => showToast(tokens.length + ' tokens copiados'));
+}
+
+function suspenderToken(i) {
+  const tokens = getTokens();
+  tokens[i].estado = 'suspendido';
+  saveTokens(tokens);
+  cargarTokens();
+  cargarDashboard();
+  showToast('Token suspendido');
+}
+
+function activarTokenAdmin(i) {
+  const tokens = getTokens();
+  tokens[i].estado = 'activo';
+  saveTokens(tokens);
+  cargarTokens();
+  cargarDashboard();
+  showToast('Token reactivado');
+}
+
+function borrarToken(i) {
+  if (!confirm('Borrar este token permanentemente?')) return;
+  const tokens = getTokens();
+  tokens.splice(i, 1);
+  saveTokens(tokens);
+  cargarTokens();
+  cargarDashboard();
+  showToast('Token borrado');
+}
+
+// ══ CLIENTES ════════════════════════════════════════════
+function cargarClientes() {
+  const clientes = getClientes();
+  const container = document.getElementById('clientes-list');
+  if (clientes.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="icon">👥</div>No hay clientes registrados</div>';
+    return;
+  }
+  container.innerHTML = clientes.map(c => {
+    return `<div class="list-item">
+      <div class="top">
+        <div class="name">${c.nombre || 'N/A'}</div>
+        <span class="badge ${c.activo ? 'badge-green' : 'badge-red'}">${c.activo ? 'Activo' : 'Suspendido'}</span>
+      </div>
+      <div class="meta">RNC: ${c.rnc || 'N/A'} · Tipo: ${c.tipo || 'N/A'}</div>
+      ${c.tel ? `<div class="meta">Tel: ${c.tel}</div>` : ''}
+      <div class="meta">Token: ${c.token || 'N/A'}</div>
+      <div class="meta">Registro: ${c.fechaRegistro || 'N/A'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══ DASHBOARD ═══════════════════════════════════════════
+function cargarDashboard() {
+  const tokens = getTokens();
+  const clientes = getClientes();
+  const activos = tokens.filter(t => t.estado === 'activo');
+  const enUso = tokens.filter(t => t.activado);
+
+  document.getElementById('d-total-tokens').textContent = tokens.length;
+  document.getElementById('d-activos').textContent = activos.length;
+  document.getElementById('d-clientes').textContent = clientes.length;
+
+  const resumen = document.getElementById('d-resumen');
+  resumen.innerHTML = `
+    Tokens totales: <strong>${tokens.length}</strong><br>
+    Tokens activos: <strong style="color:var(--green)">${activos.length}</strong><br>
+    Tokens en uso: <strong style="color:var(--yellow)">${enUso.length}</strong><br>
+    Tokens disponibles: <strong>${activos.length - enUso.length}</strong><br>
+    Tokens suspendidos: <strong style="color:var(--red)">${tokens.filter(t => t.estado === 'suspendido').length}</strong><br>
+    Clientes registrados: <strong>${clientes.length}</strong>
+  `;
+}
+
+// ══ CONFIG ══════════════════════════════════════════════
+function cambiarPass() {
+  const newPass = document.getElementById('cfg-pass').value.trim();
+  if (newPass.length < 6) { showToast('Minimo 6 caracteres', true); return; }
+  localStorage.setItem(LS_PASS, newPass);
+  document.getElementById('cfg-pass').value = '';
+  showToast('Contrasena cambiada');
+}
+
+// ══ UTILS ══════════════════════════════════════════════
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? 'var(--red)' : 'var(--green)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Exportar/importar tokens
+function exportarTokens() {
+  const tokens = getTokens();
+  const blob = new Blob([JSON.stringify(tokens, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'tokens_dgii_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Tokens exportados');
+}
+</script>
+</body>
+</html>

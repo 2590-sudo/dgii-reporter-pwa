@@ -1,8 +1,9 @@
-const CACHE_NAME = 'dgii-reporter-v3';
+const CACHE_NAME = 'dgii-reporter-v4';
 const ASSETS = [
-  '/', '/index.html', '/css/style.css',
+  '/', '/index.html', '/admin.html', '/css/style.css',
   '/js/app.js', '/js/db.js', '/js/calc.js',
-  '/js/sync.js', '/js/jspdf.umd.min.js', '/manifest.json'
+  '/js/sync.js', '/js/jspdf.umd.min.js', '/manifest.json',
+  '/icons/icon-192.png', '/icons/icon-512.png'
 ];
 
 self.addEventListener('install', e => {
@@ -30,22 +31,3 @@ self.addEventListener('fetch', e => {
     })
   );
 });
-
-// Sync check cada 12 horas
-self.addEventListener('periodicsync', e => {
-  if (e.tag === 'check-license') {
-    e.waitUntil(checkLicense());
-  }
-});
-
-async function checkLicense() {
-  try {
-    const db = await openDB();
-    const config = await getConfig(db);
-    if (!config?.token) return;
-    const resp = await fetch(`https://dgii-admin.vercel.app/api/check?token=${config.token}`);
-    const data = await resp.json();
-    const tx = db.transaction('config', 'readwrite');
-    tx.objectStore('config').put({ key: 'license_status', value: data.active ? 'active' : 'suspended' });
-  } catch(e) {}
-}
