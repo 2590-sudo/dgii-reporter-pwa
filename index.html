@@ -95,6 +95,32 @@
     <span style="font-size:20px">📝</span> Registrar Ventas del Día
   </button>
 
+  <div class="section-label">📎 Comprobantes y recibos</div>
+  <div class="comp-botones" style="margin-bottom:10px">
+    <button class="btn-comp" onclick="subirDesdeCamara()">
+      <span class="comp-icon">📷</span>
+      Tomar Foto
+    </button>
+    <button class="btn-comp" onclick="subirDesdeGaleria()">
+      <span class="comp-icon">🖼️</span>
+      Galería
+    </button>
+    <button class="btn-comp" onclick="subirDesdeArchivos()">
+      <span class="comp-icon">📁</span>
+      Archivos
+    </button>
+  </div>
+  <input type="file" id="input-camara-main" accept="image/*" capture="environment" multiple
+    style="display:none" onchange="procesarComprobanteRapido(this.files, 'camara')">
+  <input type="file" id="input-galeria-main" accept="image/*" multiple
+    style="display:none" onchange="procesarComprobanteRapido(this.files, 'galeria')">
+  <input type="file" id="input-archivos-main" accept="image/*,application/pdf" multiple
+    style="display:none" onchange="procesarComprobanteRapido(this.files, 'archivos')">
+  <div id="comp-recent-main" class="comprobantes-grid" style="margin-bottom:14px"></div>
+  <button class="btn-sec purp" onclick="verTodosComprobantes()" style="margin-bottom:14px">
+    <span class="btn-icon">🗂️</span> Ver todos mis comprobantes
+  </button>
+
   <div class="section-label" id="mes-nombre">Resumen del mes</div>
   <div class="stats-grid">
     <div class="stat-card purp">
@@ -185,6 +211,33 @@
   <div id="reg-error" class="error-msg"></div>
   <button id="btn-guardar-dia" class="btn-teal" onclick="guardarDia()">✅ Guardar Este Día</button>
   <button class="btn-outline" onclick="volver()">← Cancelar</button>
+</div>
+
+<!-- ══ COMPROBANTES ═══════════════════════════════════════ -->
+<div id="pantalla-comprobantes" class="pantalla">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+    <button onclick="volver()" style="background:var(--card);border:1px solid var(--borde);color:var(--texto2);width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">←</button>
+    <div class="page-title" style="margin:0">Mis Comprobantes</div>
+  </div>
+
+  <div class="btn-row" style="margin-bottom:16px">
+    <button class="btn-comp" onclick="subirDesdeCamara()" style="flex:1">
+      <span class="comp-icon">📷</span> Tomar Foto
+    </button>
+    <button class="btn-comp" onclick="subirDesdeGaleria()" style="flex:1">
+      <span class="comp-icon">🖼️</span> Galería
+    </button>
+    <button class="btn-comp" onclick="subirDesdeArchivos()" style="flex:1">
+      <span class="comp-icon">📁</span> Archivos
+    </button>
+  </div>
+
+  <div class="section-label">Comprobantes recientes</div>
+  <div id="comp-todos-list" class="comprobantes-grid"></div>
+  <div id="comp-empty" class="empty" style="text-align:center;padding:40px 20px;color:var(--texto2)">
+    <div style="font-size:48px;margin-bottom:12px">📎</div>
+    No tienes comprobantes guardados aún.<br>¡Sube tu primer recibo con los botones de arriba!
+  </div>
 </div>
 
 <!-- ══ REPORTE MENSUAL ════════════════════════════════════ -->

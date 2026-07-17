@@ -134,6 +134,7 @@ async function mostrarPrincipal() {
 
   await actualizarResumenMes();
   await verificarRegistroHoy();
+  await cargarComprobantesRecent();
   mostrarPantalla('principal');
 }
 
@@ -618,4 +619,138 @@ async function compartirPDFWhatsApp() {
   }, 800);
 
   mostrarToast('PDF descargado. Abriendo WhatsApp...');
+}
+
+// ══ COMPROBANTES RÁPIDOS (pantalla principal) ══════════
+function subirDesdeCamara() {
+  document.getElementById('input-camara-main').click();
+}
+
+function subirDesdeGaleria() {
+  document.getElementById('input-galeria-main').click();
+}
+
+function subirDesdeArchivos() {
+  document.getElementById('input-archivos-main').click();
+}
+
+async function procesarComprobanteRapido(files, origen) {
+  if (!files || !files.length) return;
+  mostrarToast('Guardando comprobante...');
+  for (const file of files) {
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      mostrarToast('Solo imágenes o PDF', true);
+      continue;
+    }
+    const id = Date.now() + Math.random().toString(36).substr(2,5);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target.result;
+      const hoy = new Date().toISOString().split('T')[0];
+      await guardarComprobante({
+        id, fecha: hoy, mes: getMesActual(),
+        nombre: file.name, tipo: file.type, data: dataUrl, timestamp: Date.now()
+      });
+      mostrarToast('✅ Comprobante guardado');
+      cargarComprobantesRecent();
+      // Si estamos en la pantalla de comprobantes, recargar
+      if (estadoApp === 'comprobantes') verTodosComprobantes();
+    };
+    reader.readAsDataURL(file);
+  }
+  // Limpiar input para poder subir el mismo archivo otra vez
+  event.target.value = '';
+}
+
+async function cargarComprobantesRecent() {
+  const hoy = new Date().toISOString().split('T')[0];
+  try {
+    const db = await openDB();
+    const tx = db.transaction('comprobantes', 'readonly');
+    const idx = tx.objectStore('comprobantes').index('fecha');
+    const req = idx.getAll(hoy);
+    req.onsuccess = () => {
+      const container = document.getElementById('comp-recent-main');
+      if (!container) return;
+      if (!req.result.length) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = '';
+      req.result.slice(0, 6).forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comprobante-item';
+        const preview = c.tipo === 'application/pdf'
+          ? '<div class="comp-pdf">📄</div>'
+          : '<img src="' + c.data + '" class="comp-img" onclick="verComprobanteData(\'' + c.id + '\')">';
+        div.innerHTML = preview + '<div class="comp-info"><div class="comp-nombre">' +
+          (c.nombre.length > 18 ? c.nombre.substr(0,18)+'...' : c.nombre) +
+          '</div><div class="comp-fecha">Hoy</div></div>';
+        container.appendChild(div);
+      });
+    };
+  } catch(e) {}
+}
+
+async function verTodosComprobantes() {
+  mostrarPantalla('comprobantes');
+  try {
+    const db = await openDB();
+    const tx = db.transaction('comprobantes', 'readonly');
+    const req = tx.objectStore('comprobantes').getAll();
+    req.onsuccess = () => {
+      const container = document.getElementById('comp-todos-list');
+      const empty = document.getElementById('comp-empty');
+      if (!req.result.length) {
+        container.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      container.innerHTML = '';
+      // Ordenar por fecha descendente
+      req.result.sort((a,b) => b.timestamp - a.timestamp).forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comprobante-item';
+        div.id = 'comp-all-' + c.id;
+        const preview = c.tipo === 'application/pdf'
+          ? '<div class="comp-pdf">📄</div>'
+          : '<img src="' + c.data + '" class="comp-img" onclick="verComprobanteData(\'' + c.id + '\')">';
+        const fechaTxt = new Date(c.fecha + 'T00:00:00').toLocaleDateString('es-DO', { day:'2-digit', month:'short' });
+        div.innerHTML = preview + '<div class="comp-info"><div class="comp-nombre">' +
+          (c.nombre.length > 18 ? c.nombre.substr(0,18)+'...' : c.nombre) +
+          '</div><div class="comp-fecha">' + fechaTxt + '</div></div>' +
+          '<button class="comp-eliminar" onclick="borrarComprobante(\'' + c.id + '\')">✕</button>';
+        container.appendChild(div);
+      });
+    };
+  } catch(e) {}
+}
+
+// Variable temporal para ver comprobante desde cualquier pantalla
+let comprobanteTempData = null;
+
+async function verComprobanteData(id) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction('comprobantes', 'readonly');
+    const req = tx.objectStore('comprobantes').get(id);
+    req.onsuccess = () => {
+      if (req.result && req.result.tipo.startsWith('image/')) {
+        comprobanteTempData = req.result;
+        const modal = document.getElementById('modal-comprobante');
+        document.getElementById('modal-img').src = req.result.data;
+        modal.style.display = 'flex';
+      }
+    };
+  } catch(e) {}
+}
+
+async function borrarComprobante(id) {
+  const db = await openDB();
+  const tx = db.transaction('comprobantes', 'readwrite');
+  tx.objectStore('comprobantes').delete(id);
+  document.getElementById('comp-all-' + id)?.remove();
+  mostrarToast('Comprobante eliminado');
+  cargarComprobantesRecent();
 }
