@@ -224,6 +224,18 @@
     </div>
   </div>
 
+  <div class="section-label">Compartir reporte</div>
+  <div class="btn-row">
+    <button class="btn-descarga btn-pdf" onclick="descargarPDF()">
+      <span style="font-size:22px">📄</span>
+      Descargar PDF<br><small style="font-weight:400;opacity:0.8">Reporte completo</small>
+    </button>
+    <button class="btn-descarga btn-wa" onclick="compartirPDFWhatsApp()">
+      <span style="font-size:22px">💬</span>
+      Compartir por<br><small style="font-weight:400;opacity:0.8">WhatsApp</small>
+    </button>
+  </div>
+
   <div class="section-label">Descargar para el portal OFV</div>
   <div class="btn-row">
     <button class="btn-descarga btn-606" onclick="descargarCSV('606')">
@@ -402,6 +414,7 @@
 <!-- ══ TOAST ═════════════════════════════════════════════ -->
 <div id="toast"></div>
 
+<script src="/js/jspdf.umd.min.js"></script>
 <script src="/js/db.js"></script>
 <script src="/js/calc.js"></script>
 <script src="/js/sync.js"></script>

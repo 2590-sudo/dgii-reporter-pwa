@@ -1,8 +1,8 @@
-const CACHE_NAME = 'dgii-reporter-v2';
+const CACHE_NAME = 'dgii-reporter-v3';
 const ASSETS = [
   '/', '/index.html', '/css/style.css',
   '/js/app.js', '/js/db.js', '/js/calc.js',
-  '/js/sync.js', '/manifest.json'
+  '/js/sync.js', '/js/jspdf.umd.min.js', '/manifest.json'
 ];
 
 self.addEventListener('install', e => {

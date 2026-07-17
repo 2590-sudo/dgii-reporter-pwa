@@ -426,3 +426,196 @@ function mostrarToast(msg) {
   if (t) { t.textContent = msg; t.classList.add('visible'); }
   setTimeout(() => t?.classList.remove('visible'), 3000);
 }
+
+// ══ PDF + WHATSAPP ═════════════════════════════════════
+async function generarPDFReporte() {
+  const mes = getMesActual();
+  const registros = await getRegistrosMes(mes);
+  const r = calcularResumenMensual(registros);
+  const negocio = await getConfig('negocio');
+
+  if (r.diasRegistrados === 0) {
+    mostrarToast('No hay registros este mes');
+    return null;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210;
+  let y = 20;
+
+  // Header con fondo
+  doc.setFillColor(13, 13, 26);
+  doc.rect(0, 0, W, 35, 'F');
+  doc.setTextColor(124, 58, 237);
+  doc.setFontSize(22);
+  doc.setFont(undefined, 'bold');
+  doc.text('DGII Reporter', 105, 15, { align: 'center' });
+  doc.setTextColor(136, 136, 170);
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
+  doc.text('Reporte Fiscal Mensual', 105, 23, { align: 'center' });
+  doc.text(getMesNombre().toUpperCase(), 105, 28, { align: 'center' });
+  y = 45;
+
+  // Datos del negocio
+  doc.setTextColor(40, 40, 60);
+  doc.setFontSize(13);
+  doc.setFont(undefined, 'bold');
+  doc.text(negocio?.nombre || 'N/A', 20, y);
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 120);
+  doc.text('RNC: ' + (negocio?.rnc || 'N/A'), 20, y + 7);
+  doc.text('Tipo: ' + (negocio?.tipo || 'N/A'), 20, y + 13);
+  doc.text('Generado: ' + new Date().toLocaleString('es-DO'), 20, y + 19);
+  y += 30;
+
+  // Linea separadora
+  doc.setDrawColor(220, 220, 230);
+  doc.line(20, y, W - 20, y);
+  y += 10;
+
+  // Resumen fiscal
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(40, 40, 60);
+  doc.text('Resumen Fiscal', 20, y);
+  y += 8;
+
+  const filas = [
+    ['Total Ventas (con ITBIS)', formatearDinero(r.totalVentas), [167, 139, 250]],
+    ['Total Compras', formatearDinero(r.totalCompras), [60, 60, 80]],
+    ['ITBIS Cobrado (18%)', formatearDinero(r.totalItbisCobrado), [60, 60, 80]],
+    ['ITBIS Pagado (credito)', formatearDinero(r.totalItbisPagado), [60, 60, 80]],
+    ['Dias registrados', r.diasRegistrados.toString(), [60, 60, 80]]
+  ];
+
+  doc.setFontSize(11);
+  filas.forEach(f => {
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(f[2][0], f[2][1], f[2][2]);
+    doc.text(f[0], 20, y);
+    doc.setFont(undefined, 'bold');
+    doc.text(f[1], W - 20, y, { align: 'right' });
+    y += 8;
+  });
+
+  // ITBIS a pagar destacado
+  y += 4;
+  doc.setFillColor(240, 240, 245);
+  doc.roundedRect(20, y - 5, W - 40, 16, 3, 3, 'F');
+  doc.setFontSize(13);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(124, 58, 237);
+  doc.text('ITBIS a Pagar a DGII', 25, y + 4);
+  doc.setTextColor(0, 168, 138);
+  doc.text(formatearDinero(r.itbisAPagar), W - 25, y + 4, { align: 'right' });
+  y += 20;
+
+  // Detalle de registros
+  if (registros.length > 0) {
+    doc.addPage();
+    y = 20;
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(40, 40, 60);
+    doc.text('Detalle de Registros', 20, y);
+    y += 8;
+
+    // Tabla header
+    doc.setFillColor(13, 13, 26);
+    doc.rect(20, y - 5, W - 40, 9, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'bold');
+    doc.text('Fecha', 22, y + 1);
+    doc.text('Ventas', 90, y + 1, { align: 'right' });
+    doc.text('Compras', 140, y + 1, { align: 'right' });
+    doc.text('ITBIS Cobrado', W - 22, y + 1, { align: 'right' });
+    y += 10;
+
+    // Filas
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(60, 60, 80);
+    registros.forEach((reg, i) => {
+      if (y > 280) { doc.addPage(); y = 20; }
+      if (i % 2 === 0) {
+        doc.setFillColor(248, 248, 252);
+        doc.rect(20, y - 4, W - 40, 8, 'F');
+      }
+      const fechaTxt = new Date(reg.fecha + 'T00:00:00').toLocaleDateString('es-DO', { day:'2-digit', month:'2-digit' });
+      doc.text(fechaTxt, 22, y + 1);
+      const cv = reg.ventas > 0 ? calcularDesdeVentas(reg.ventas) : null;
+      doc.text(reg.ventas > 0 ? formatearDinero(reg.ventas) : '-', 90, y + 1, { align: 'right' });
+      doc.text(reg.compras > 0 ? formatearDinero(reg.compras) : '-', 140, y + 1, { align: 'right' });
+      doc.text(cv ? formatearDinero(cv.itbisCobrado) : '-', W - 22, y + 1, { align: 'right' });
+      y += 8;
+    });
+  }
+
+  // Footer en cada pagina
+  const pages = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 170);
+    doc.text('DGII Reporter - Reporte generado automaticamente', 105, 290, { align: 'center' });
+    doc.text('Pagina ' + p + ' de ' + pages, W - 20, 290, { align: 'right' });
+  }
+
+  const filename = 'reporte_DGII_' + mes + '.pdf';
+  const blob = doc.output('blob');
+  return { blob, filename };
+}
+
+async function descargarPDF() {
+  const result = await generarPDFReporte();
+  if (!result) return;
+  const url = URL.createObjectURL(result.blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = result.filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  mostrarToast('PDF descargado ✅');
+}
+
+async function compartirPDFWhatsApp() {
+  const result = await generarPDFReporte();
+  if (!result) return;
+
+  const file = new File([result.blob], result.filename, { type: 'application/pdf' });
+
+  // Intentar Web Share API con archivo (funciona en Android Chrome)
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'Reporte DGII',
+        text: 'Reporte fiscal de ' + getMesNombre()
+      });
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+
+  // Fallback: descargar + abrir WhatsApp
+  const url = URL.createObjectURL(result.blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = result.filename;
+  a.click();
+
+  // Dar tiempo a que descargue y luego abrir WhatsApp
+  setTimeout(() => {
+    const waUrl = 'https://wa.me/?text=' + encodeURIComponent(
+      'Reporte DGII ' + getMesNombre() + '\n\nAdjunta el PDF que se descargo.'
+    );
+    window.open(waUrl, '_blank');
+    URL.revokeObjectURL(url);
+  }, 800);
+
+  mostrarToast('PDF descargado. Abriendo WhatsApp...');
+}
