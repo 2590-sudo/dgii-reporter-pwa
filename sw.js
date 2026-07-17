@@ -1,13 +1,25 @@
-const CACHE_NAME = 'dgii-reporter-v4';
+const CACHE_NAME = 'dgii-reporter-v5';
+const BASE = self.registration.scope;
+
 const ASSETS = [
-  '/', '/index.html', '/admin.html', '/css/style.css',
-  '/js/app.js', '/js/db.js', '/js/calc.js',
-  '/js/sync.js', '/js/jspdf.umd.min.js', '/manifest.json',
-  '/icons/icon-192.png', '/icons/icon-512.png'
+  BASE,
+  BASE + 'index.html',
+  BASE + 'admin.html',
+  BASE + 'css/style.css',
+  BASE + 'js/app.js',
+  BASE + 'js/db.js',
+  BASE + 'js/calc.js',
+  BASE + 'js/sync.js',
+  BASE + 'js/jspdf.umd.min.js',
+  BASE + 'manifest.json'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(c => {
+      return Promise.allSettled(ASSETS.map(url => c.add(url).catch(() => {})));
+    })
+  );
   self.skipWaiting();
 });
 
@@ -27,7 +39,7 @@ self.addEventListener('fetch', e => {
         const clone = resp.clone();
         caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
         return resp;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => caches.match(BASE + 'index.html'));
     })
   );
 });

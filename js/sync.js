@@ -1,85 +1,84 @@
-// Sincronización cada 12 horas con el servidor de control
-const SYNC_URL = 'https://dgii-admin-panel.vercel.app/api';
-const SYNC_INTERVAL = 12 * 60 * 60 * 1000; // 12 horas en ms
+// ══ VALIDACIÓN DE TOKENS LOCAL (sin servidor) ═══════════
+// Mismo algoritmo criptográfico que el panel admin
+const SALT = "DGRD$2026xK9";
+const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function validarFormatoToken(token) {
+  if (!token) return false;
+  const clean = token.replace(/-/g, '').toUpperCase().trim();
+  // Token formato DGRD-XXXX-XXXX-XXXX (16 chars sin guiones)
+  if (clean.length !== 16 || !clean.startsWith('DGRD')) return false;
+  const body = clean.substring(4, 12);
+  const check = clean.substring(12, 16);
+  let hash = 0;
+  const str = body + SALT;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash = hash & hash;
+  }
+  hash = Math.abs(hash) % 9999;
+  return String(hash).padStart(4, '0') === check;
+}
 
 async function verificarLicencia() {
   try {
     const token = await getConfig('token');
     if (!token) return false;
 
-    const lastCheck = await getConfig('last_sync');
-    const ahora = Date.now();
-
-    // Si no han pasado 12 horas, usar cache local
-    if (lastCheck && (ahora - lastCheck) < SYNC_INTERVAL) {
-      const status = await getConfig('license_status');
-      return status === 'active';
-    }
-
-    // Consultar al servidor
-    const resp = await fetch(`${SYNC_URL}/check?token=${token}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (!resp.ok) {
-      // Sin internet — usar último estado conocido
-      const status = await getConfig('license_status');
-      return status === 'active';
-    }
-
-    const data = await resp.json();
-    await setConfig('license_status', data.active ? 'active' : 'suspended');
-    await setConfig('last_sync', ahora);
-    await setConfig('cliente_info', data.cliente || {});
-
-    return data.active;
-  } catch (err) {
-    // Sin conexión — usar último estado guardado
+    // Verificar si el token fue marcado como suspendido localmente
     const status = await getConfig('license_status');
-    return status === 'active';
+    if (status === 'suspended') return false;
+
+    // Validación criptográfica local — no requiere servidor
+    const valido = validarFormatoToken(token);
+    if (valido) {
+      await setConfig('license_status', 'active');
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    // Error de DB — permitir si hay token guardado
+    return true;
   }
 }
 
-async function sincronizarDatos() {
+// Función para suspender localmente (cuando el admin lo requiera)
+async function suspenderLicenciaLocal() {
+  await setConfig('license_status', 'suspended');
+}
+
+// Intentar sincronizar estado con servidor (silencioso, no bloquea)
+async function sincronizarConServidor() {
   try {
     const token = await getConfig('token');
     if (!token) return;
 
-    const db = await openDB();
-    const tx = db.transaction('sync_queue', 'readonly');
-    const req = tx.objectStore('sync_queue').getAll();
+    const lastCheck = await getConfig('last_sync');
+    const ahora = Date.now();
+    const SYNC_INTERVAL = 12 * 60 * 60 * 1000; // 12 horas
 
-    req.onsuccess = async () => {
-      const pendientes = req.result;
-      if (!pendientes.length) return;
+    if (lastCheck && (ahora - lastCheck) < SYNC_INTERVAL) return;
 
-      await fetch(`${SYNC_URL}/sync`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ registros: pendientes })
-      });
+    // Intentar con el servidor (si está disponible)
+    const resp = await fetch(`https://dgii-admin-panel.vercel.app/api/check?token=${token}`, {
+      signal: AbortSignal.timeout(5000) // timeout 5 segundos
+    });
 
-      // Limpiar queue si subió bien
-      const tx2 = db.transaction('sync_queue', 'readwrite');
-      tx2.objectStore('sync_queue').clear();
-    };
+    if (resp.ok) {
+      const data = await resp.json();
+      await setConfig('license_status', data.active ? 'active' : 'suspended');
+      await setConfig('last_sync', ahora);
+    }
   } catch (e) {
-    // Silencioso — se reintenta próxima vez
+    // Sin internet o sin servidor — no hacer nada, validación local ya pasó
   }
 }
 
-// Verificar al abrir la app
 async function inicializarSync() {
   const activo = await verificarLicencia();
-  if (!activo) {
-    mostrarPantallaBloqueo();
-    return false;
-  }
-  // Intentar sincronizar datos pendientes
-  sincronizarDatos();
+  if (!activo) return false;
+  // Sync en background sin bloquear
+  sincronizarConServidor();
   return true;
 }

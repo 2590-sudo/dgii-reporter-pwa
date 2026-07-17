@@ -9,8 +9,20 @@
   <meta name="apple-mobile-web-app-title" content="DGII Reporter">
   <meta name="description" content="Reportes 606/607 automáticos para comerciantes de República Dominicana">
   <title>DGII Reporter</title>
-  <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Critical inline CSS - evita flash de contenido sin estilos */
+    body { background:#0F172A; color:#F1F5F9; margin:0; font-family:-apple-system,sans-serif; }
+    .pantalla { display:none !important; }
+    .pantalla.activa { display:flex !important; flex-direction:column; min-height:100vh; padding:20px 16px 90px; }
+    #pantalla-carga { justify-content:center; align-items:center; gap:18px; padding-bottom:0; }
+    .splash-logo { font-size:56px; }
+    .splash-title { font-size:28px; font-weight:800; }
+    .splash-sub { color:#94A3B8; font-size:14px; }
+    .spinner { width:36px;height:36px;border:3px solid #334155;border-top-color:#0EA5E9;border-radius:50%;animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
 </head>
 <body>
 
@@ -27,8 +39,8 @@
   <div class="token-icon-wrap">🔑</div>
   <div class="token-title">Activar App</div>
   <div class="token-desc">Ingresa el token que te envió tu proveedor para desbloquear el acceso completo.</div>
-  <input type="text" id="input-token" class="input-token" placeholder="XXXX-XXXX"
-    maxlength="12" oninput="this.value=this.value.toUpperCase()" autocomplete="off" spellcheck="false">
+  <input type="text" id="input-token" class="input-token" placeholder="DGRD-XXXX-XXXX-XXXX"
+    maxlength="19" oninput="this.value=this.value.toUpperCase()" autocomplete="off" spellcheck="false">
   <div id="token-error" class="error-msg"></div>
   <button id="btn-activar" class="btn-primary" onclick="activarToken()">Activar ✅</button>
   <div style="font-size:12px;color:var(--texto3);margin-top:10px">¿Sin token? Contacta a tu proveedor.</div>
@@ -467,10 +479,10 @@
 <!-- ══ TOAST ═════════════════════════════════════════════ -->
 <div id="toast"></div>
 
-<script src="/js/jspdf.umd.min.js"></script>
-<script src="/js/db.js"></script>
-<script src="/js/calc.js"></script>
-<script src="/js/sync.js"></script>
-<script src="/js/app.js"></script>
+<script src="js/jspdf.umd.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

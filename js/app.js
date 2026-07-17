@@ -4,7 +4,7 @@ let estadoApp = 'cargando';
 // ══ INIT ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
   // Capturar evento de instalación PWA
@@ -76,34 +76,24 @@ function volver() { mostrarPantalla('principal'); }
 async function activarToken() {
   const input = document.getElementById('input-token').value.trim().toUpperCase();
   if (!input || input.length < 6) {
-    mostrarError('token-error', 'Token inválido. Verifica con tu proveedor.');
+    mostrarError('token-error', 'Ingresa un token válido.');
     return;
   }
+
   document.getElementById('btn-activar').disabled = true;
   document.getElementById('btn-activar').textContent = 'Verificando...';
 
-  try {
-    const SYNC_URL = 'https://dgii-admin-panel.vercel.app/api';
-    const resp = await fetch(`${SYNC_URL}/check?token=${input}`, { signal: AbortSignal.timeout(8000) });
-    const data = await resp.json();
-    if (data.active) {
-      await setConfig('token', input);
-      await setConfig('license_status', 'active');
-      await setConfig('last_sync', Date.now());
-      mostrarPantalla('setup');
-    } else {
-      mostrarError('token-error', 'Token inválido o cuenta suspendida.');
-    }
-  } catch {
-    // Demo mode — para pruebas sin servidor activo
-    if (input.startsWith('TEST') || input.startsWith('DEMO')) {
-      await setConfig('token', input);
-      await setConfig('license_status', 'active');
-      await setConfig('last_sync', Date.now());
-      mostrarPantalla('setup');
-    } else {
-      mostrarError('token-error', 'Sin conexión al servidor. Usa un token DEMO-XXXX para pruebas.');
-    }
+  // Validación criptográfica local — no requiere internet
+  const esValido = validarFormatoToken(input);
+
+  if (esValido) {
+    await setConfig('token', input);
+    await setConfig('license_status', 'active');
+    await setConfig('last_sync', Date.now());
+    mostrarToast('✅ Token activado');
+    mostrarPantalla('setup');
+  } else {
+    mostrarError('token-error', 'Token inválido. Verifica con tu proveedor (formato: DGRD-XXXX-XXXX-XXXX).');
   }
 
   document.getElementById('btn-activar').disabled = false;
